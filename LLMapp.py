@@ -1,35 +1,33 @@
+from openai import OpenAI
 import streamlit as st
-import openai
 
-# Streamlit 앱 제목
-st.title('GPT-4 Chat Completion 앱')
+st.title("ChatGPT-like clone")
 
-# GPT API 키 입력
-api_key = st.secrets["api_key"]
+client = OpenAI(api_key=st.secrets["api_key"])
 
-if api_key:
-    # OpenAI API 키 설정
-    openai.api_key = st.secrets["api_key"]
+if "openai_model" not in st.session_state:
+    st.session_state["openai_model"] = "gpt-4o"
 
-    # 사용자 입력
-    user_input = st.text_area('당신의 질문을 입력하세요:')
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-    if st.button('응답 생성'):
-        if user_input:
-            try:
-                # GPT-4 Chat Completion 요청
-                response = openai.ChatCompletion.create(
-                    model='gpt-4o',  # GPT-4 모델 사용
-                    messages=[
-                        {"role": "system", "content": "You are a helpful assistant."},
-                        {"role": "user", "content": user_input}
-                    ]
-                )
-                st.subheader('GPT-4 응답')
-                st.write(response.choices[0].message['content'].strip())
-            except Exception as e:
-                st.error(f"오류가 발생했습니다: {e}")
-        else:
-            st.warning('먼저 질문을 입력해주세요.')
-else:
-    st.warning('먼저 OpenAI API 키를 입력해주세요.')
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+if prompt := st.chat_input("What is up?"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        stream = client.chat.completions.create(
+            model=st.session_state["openai_model"],
+            messages=[
+                {"role": m["role"], "content": m["content"]}
+                for m in st.session_state.messages
+            ],
+            stream=True,
+        )
+        response = st.write_stream(stream)
+    st.session_state.messages.append({"role": "assistant", "content": response})
