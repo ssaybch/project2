@@ -5,7 +5,7 @@ import openai
 st.title('GPT-4 Chat Completion 앱')
 
 # GPT API 키 입력
-api_key = api_key
+api_key = st.secrets["api_key"]
 
 if api_key:
     # OpenAI API 키 설정
