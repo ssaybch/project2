@@ -5,11 +5,11 @@ import openai
 st.title('GPT-4 Chat Completion 앱')
 
 # GPT API 키 입력
-api_key = st.text_input('OpenAI API Key', type='password')
+api_key = api_key
 
 if api_key:
     # OpenAI API 키 설정
-    openai.api_key = api_key
+    openai.api_key = st.secrets["api_key"]
 
     # 사용자 입력
     user_input = st.text_area('당신의 질문을 입력하세요:')
